@@ -1,0 +1,17 @@
+# Generated Python files
+__pycache__/
+*.py[cod]
+
+.idea
+
+# Large/local datasets and potentially unsafe samples
+datasets/sorel20m/
+datasets/gold_pe/
+
+.venv
+
+# Interrupted large downloads
+*.part
+
+winget_tree_cache.json
+benign_pe_sources.json
