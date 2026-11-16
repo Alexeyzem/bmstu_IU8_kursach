@@ -5,8 +5,7 @@ __pycache__/
 .idea
 
 # Large/local datasets and potentially unsafe samples
-datasets/sorel20m/
-datasets/gold_pe/
+datasets
 
 .venv
 
