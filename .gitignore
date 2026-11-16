@@ -15,3 +15,8 @@ datasets/gold_pe/
 
 winget_tree_cache.json
 benign_pe_sources.json
+.env.local
+env.local
+
+outputs
+

@@ -18,6 +18,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Iterable
+from http.client import IncompleteRead
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -183,7 +184,7 @@ def download_file(url: str, target: Path, expected_size: int, chunk_size: int, r
             part.replace(target)
             print(f"done: {target} ({human_bytes(expected_size)})")
             return
-        except (HTTPError, URLError, TimeoutError, RuntimeError) as exc:
+        except (HTTPError, URLError, TimeoutError, ConnectionError, IncompleteRead, ssl.SSLError, RuntimeError) as exc:
             if attempt == retries:
                 raise
             wait = min(60, 2**attempt)
