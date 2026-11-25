@@ -1,0 +1,213 @@
+{
+  "inputs": {
+    "train": "outputs/research/stratified.csv",
+    "panel": "outputs/research/gold_panel.csv",
+    "gold": "outputs/gold/gold_final_metadata.csv",
+    "signatures": "datasets/gold_pe/metadata.csv",
+    "historical_predictions": "outputs/metrics/predictions_gold_lightgbm_fast.csv",
+    "panel_features": "outputs/research/gold_panel/gold_features.parquet",
+    "indices": "outputs/features/selected_features.json",
+    "model": "outputs/research/final_lightgbm.txt",
+    "test": "outputs/matrices/sorel_test_manifest.csv",
+    "lmdb": "datasets/sorel20m/ember_features",
+    "database": "datasets/sorel20m/meta.db",
+    "dedup": "outputs/dedup/dedup_summary.json"
+  },
+  "model_sha256": "71016007d50a3098975b68a31c08a077805b4f289dc7511d71cb7e5ee0dfd781",
+  "trees": 400,
+  "threshold": 0.5,
+  "method": [
+    "load_split on first 20000 test manifest rows, default signed-log and ordered selected indices; only available LMDB vectors are scored",
+    "ExternalPanel.load uses gold parquet signed-log vectors and the same ordered selected indices. No fitting or threshold selection. Quantiles use numpy linear interpolation within the true class.",
+    "Gold panel joined 1:1 by original sha256 to predictions and source metadata. Year uses MalwareBazaar first_seen; family uses the signature field, not tags.",
+    "Historical coverage counts unique SHA appearing in the old prediction log, including rows with processing errors; it is not a count of successful predictions."
+  ],
+  "sorel_train": {
+    "label_counts": {
+      "1": 59908,
+      "0": 40092
+    },
+    "month_min": "2017-01",
+    "month_max": "2018-11",
+    "meta_columns": [
+      "sha256",
+      "is_malware",
+      "rl_fs_t",
+      "rl_ls_const_positives",
+      "adware",
+      "flooder",
+      "ransomware",
+      "dropper",
+      "spyware",
+      "packed",
+      "crypto_miner",
+      "file_infector",
+      "installer",
+      "worm",
+      "downloader"
+    ]
+  },
+  "full_gold": {
+    "label_counts": {
+      "1": 2477,
+      "0": 737
+    },
+    "sources": {
+      "MalwareBazaar": 2477,
+      "Microsoft WinGet manifests": 732,
+      "PuTTY official release site": 5
+    },
+    "hashes_in_historical_log": 3214,
+    "exact_overlap_sorel_removed": 1,
+    "near_dedup_status": "not_performed_raw_byte_comparison_unavailable"
+  },
+  "gold_panel": {
+    "sources_by_label": {
+      "0": {
+        "Microsoft WinGet manifests": 127,
+        "PuTTY official release site": 1
+      },
+      "1": {
+        "MalwareBazaar": 128
+      }
+    },
+    "missing_first_seen_by_label": {
+      "0": 128,
+      "1": 0
+    },
+    "malware_first_seen_range": [
+      "2023-09-21 13:00:30",
+      "2026-11-07 18:32:07"
+    ],
+    "malware_by_first_seen_year": {
+      "2023": {
+        "n": 6,
+        "detected": 2
+      },
+      "2024": {
+        "n": 25,
+        "detected": 5
+      },
+      "2025": {
+        "n": 9,
+        "detected": 2
+      },
+      "2026": {
+        "n": 88,
+        "detected": 11
+      }
+    },
+    "malware_by_source_signature": {
+      "AgentTesla": {
+        "n": 13,
+        "detected": 1
+      },
+      "AsyncRAT": {
+        "n": 30,
+        "detected": 5
+      },
+      "CobaltStrike": {
+        "n": 47,
+        "detected": 10
+      },
+      "Formbook": {
+        "n": 23,
+        "detected": 3
+      },
+      "HijackLoader": {
+        "n": 1,
+        "detected": 0
+      },
+      "ParallaxRAT": {
+        "n": 1,
+        "detected": 0
+      },
+      "RemcosRAT": {
+        "n": 6,
+        "detected": 1
+      },
+      "VShell": {
+        "n": 1,
+        "detected": 0
+      },
+      "WARDENStealer": {
+        "n": 1,
+        "detected": 0
+      },
+      "XWorm": {
+        "n": 1,
+        "detected": 0
+      },
+      "nan": {
+        "n": 4,
+        "detected": 0
+      }
+    }
+  },
+  "cohorts_by_true_label": {
+    "sorel_test": {
+      "0": {
+        "n": 13293,
+        "predicted_malicious": 117,
+        "score_q25_median_q75": [
+          0.0002143948715829147,
+          0.0010360512910084,
+          0.005757426810754235
+        ],
+        "fully_zero_selected_feature_groups": {
+          "header": 0,
+          "section": 1,
+          "imports": 756,
+          "datadirectories": 10
+        }
+      },
+      "1": {
+        "n": 6346,
+        "predicted_malicious": 6076,
+        "score_q25_median_q75": [
+          0.9930318711665759,
+          0.9994108787208977,
+          0.9998936725621066
+        ],
+        "fully_zero_selected_feature_groups": {
+          "header": 0,
+          "section": 0,
+          "imports": 775,
+          "datadirectories": 256
+        }
+      }
+    },
+    "gold_panel": {
+      "0": {
+        "n": 128,
+        "predicted_malicious": 2,
+        "score_q25_median_q75": [
+          0.0003820588242124038,
+          0.0005074065917038061,
+          0.004423998327339397
+        ],
+        "fully_zero_selected_feature_groups": {
+          "header": 0,
+          "section": 0,
+          "imports": 0,
+          "datadirectories": 0
+        }
+      },
+      "1": {
+        "n": 128,
+        "predicted_malicious": 20,
+        "score_q25_median_q75": [
+          0.014793897589617562,
+          0.06831237168930977,
+          0.28741339264766286
+        ],
+        "fully_zero_selected_feature_groups": {
+          "header": 0,
+          "section": 0,
+          "imports": 4,
+          "datadirectories": 1
+        }
+      }
+    }
+  }
+}

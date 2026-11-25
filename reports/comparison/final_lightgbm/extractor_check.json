@@ -1,0 +1,81 @@
+{
+  "inputs": {
+    "benign_manifest": "outputs/dedup/gold_exact_removed.csv",
+    "train_manifest": "outputs/research/stratified.csv",
+    "gold_vectors": "outputs/research/gold_panel/gold_features.parquet",
+    "sorel_lmdb": "datasets/sorel20m/ember_features",
+    "selected_indices": "outputs/features/selected_features.json",
+    "model": "outputs/research/final_lightgbm.txt"
+  },
+  "runtime": {
+    "python": "3.14.6",
+    "lief": "1.0.0",
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "lightgbm": "4.7.0"
+  },
+  "reference": {
+    "vectors": "Published SOREL LMDB, pre-signed-log for paired fixture",
+    "ember": "https://github.com/elastic/ember/blob/master/ember/features.py#L128-L182",
+    "sorel_loader": "https://github.com/sophos/SOREL-20M/blob/master/dataset.py#L21-L43",
+    "historical_extraction_version": "Exact LIEF build used for this reference vector is unknown. Compared the legacy <0.12 branch of EMBER."
+  },
+  "paired_benign": {
+    "sha256_verified": "dfff0b6c7e381b722c886ff34fe2146d061cf221c729210224f597e192fe2619",
+    "stored_path": "datasets/gold_pe/benign/dfff0b6c7e381b722c886ff34fe2146d061cf221c729210224f597e192fe2619.CardMakerAMS.exe.txt",
+    "comparison": "numpy.isclose before signed-log",
+    "rtol": 1e-05,
+    "atol": 1e-06,
+    "current_entry_name": ".itext",
+    "legacy_offset_then_first_executable_section": ".text",
+    "entry_name_matching_coordinates_out_of_50": {
+      "current_whole_name_token": 45,
+      "character_tokens_current_section": 49,
+      "character_tokens_historical_section": 50
+    },
+    "header_matching_coordinates_out_of_62": {
+      "current": 58,
+      "using_DLL_flag_names": 60
+    },
+    "DLL_flag_matching_coordinates_out_of_10": {
+      "current": 8,
+      "using_DLL_flag_names": 10
+    }
+  },
+  "sampling": "pandas.read_csv(train_manifest).sample(n=1024, random_state=42); all 256 gold parquet rows; all 2381 signed-log features.",
+  "sorel_train": {
+    "rows": 1024,
+    "entry_name_nonzero_coordinates_counts": {
+      "0": 38,
+      "1": 17,
+      "3": 3,
+      "4": 941,
+      "5": 11,
+      "6": 4,
+      "7": 10
+    },
+    "normalized_histogram_max_abs_error_after_expm1": 3.5762786865234375e-07
+  },
+  "gold": {
+    "rows": 256,
+    "entry_name_nonzero_coordinates_counts": {
+      "1": 256
+    },
+    "normalized_histogram_max_abs_error_after_expm1": 1.6689300537109375e-06
+  },
+  "gold_panel_SHA_found_in_SOREL_LMDB": 0,
+  "final_lightgbm_split_importance": {
+    "entry_name": {
+      "selected": 22,
+      "used": 6,
+      "tree_splits": 34
+    },
+    "DLL_flags": {
+      "selected": 7,
+      "used": 5,
+      "tree_splits": 73
+    }
+  },
+  "scope": "Diagnostic comparison only. Effect on gold FP/FN has not been measured."
+}

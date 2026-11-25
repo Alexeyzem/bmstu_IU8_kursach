@@ -1,0 +1,27 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 260' width='900' height='260'>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2937; font-size: 13px; }
+.title { font-size: 18px; font-weight: 700; }
+.subtitle { fill: #4b5563; font-size: 12px; }
+.axis { stroke: #6b7280; stroke-width: 1; }
+.grid { stroke: #e5e7eb; stroke-width: 1; }
+.bar0 { fill: #2563eb; }
+.bar1 { fill: #dc2626; }
+.bar2 { fill: #059669; }
+.bar3 { fill: #d97706; }
+.line1 { fill: none; stroke: #2563eb; stroke-width: 2; }
+.line2 { fill: none; stroke: #dc2626; stroke-width: 2; }
+.line3 { fill: none; stroke: #059669; stroke-width: 2; }
+.cell-good { fill: #d1fae5; }
+.cell-bad { fill: #fee2e2; }
+.cell-neutral { fill: #e0f2fe; }
+</style>
+<text class='title' x='20' y='30'>External gold class composition</text>
+<text x='20' y='78'>benign/safe</text>
+<rect class='bar0' x='260' y='56' width='178.5' height='26' rx='3'/>
+<text x='446.5' y='75'>737</text>
+<text x='20' y='120'>malicious/dangerous</text>
+<rect class='bar1' x='260' y='98' width='600.0' height='26' rx='3'/>
+<text x='868.0' y='117'>2 477</text>
+<line class='axis' x1='260' y1='218' x2='860' y2='218'/>
+</svg>

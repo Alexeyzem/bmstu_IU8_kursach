@@ -17,5 +17,14 @@ benign_pe_sources.json
 .env.local
 env.local
 
-outputs
+/reports/*
+!/reports/figures/
+!/reports/comparison/
+/reports/comparison/*
+!/reports/comparison/feature_ablation_400.json
+!/reports/comparison/tree_counts.json
+!/reports/comparison/final_lightgbm/
+!/reports/comparison/final_lightgbm_600/
+outputs/
+tmp
 

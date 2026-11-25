@@ -1,0 +1,19 @@
+{
+  "threshold": 0.5,
+  "accuracy": 0.546875,
+  "precision": 0.875,
+  "recall_tpr": 0.109375,
+  "f1": 0.19444444444444445,
+  "roc_auc": 0.761474609375,
+  "pr_auc": 0.7861196435905776,
+  "fpr": 0.015625,
+  "fnr": 0.890625,
+  "confusion_matrix": {
+    "tn": 126,
+    "fp": 2,
+    "fn": 114,
+    "tp": 14
+  },
+  "requested": 256,
+  "scored": 256
+}

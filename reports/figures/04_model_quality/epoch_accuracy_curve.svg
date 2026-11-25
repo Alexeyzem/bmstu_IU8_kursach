@@ -1,0 +1,52 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 420' width='900' height='420'>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2937; font-size: 13px; }
+.title { font-size: 18px; font-weight: 700; }
+.axis { stroke: #6b7280; stroke-width: 1; }
+.grid { stroke: #e5e7eb; stroke-width: 1; }
+.bar0 { fill: #2563eb; }
+.bar1 { fill: #dc2626; }
+.line1 { fill: none; stroke: #2563eb; stroke-width: 3; }
+.line2 { fill: none; stroke: #dc2626; stroke-width: 3; }
+.dot1 { fill: #2563eb; }
+.dot2 { fill: #dc2626; }
+</style>
+<text class='title' x='20' y='32'>Validation metrics by epoch, full SOREL 5-epoch run</text>
+<line class='grid' x1='70' y1='360.0' x2='750' y2='360.0'/>
+<text x='25' y='364.0'>0.00</text>
+<line class='grid' x1='70' y1='285.0' x2='750' y2='285.0'/>
+<text x='25' y='289.0'>0.25</text>
+<line class='grid' x1='70' y1='210.0' x2='750' y2='210.0'/>
+<text x='25' y='214.0'>0.50</text>
+<line class='grid' x1='70' y1='135.0' x2='750' y2='135.0'/>
+<text x='25' y='139.0'>0.75</text>
+<line class='grid' x1='70' y1='60.0' x2='750' y2='60.0'/>
+<text x='25' y='64.0'>1.00</text>
+<line class='grid' x1='70.0' y1='60' x2='70.0' y2='360'/>
+<text x='66.0' y='395'>1</text>
+<line class='grid' x1='240.0' y1='60' x2='240.0' y2='360'/>
+<text x='236.0' y='395'>2</text>
+<line class='grid' x1='410.0' y1='60' x2='410.0' y2='360'/>
+<text x='406.0' y='395'>3</text>
+<line class='grid' x1='580.0' y1='60' x2='580.0' y2='360'/>
+<text x='576.0' y='395'>4</text>
+<line class='grid' x1='750.0' y1='60' x2='750.0' y2='360'/>
+<text x='746.0' y='395'>5</text>
+<polyline class='line1' points='70.0,84.9 240.0,84.1 410.0,81.0 580.0,80.1 750.0,79.1'/>
+<polyline class='line2' points='70.0,91.4 240.0,90.6 410.0,86.9 580.0,85.9 750.0,84.7'/>
+<circle class='dot1' cx='70.0' cy='84.9' r='4'/>
+<circle class='dot2' cx='70.0' cy='91.4' r='4'/>
+<circle class='dot1' cx='240.0' cy='84.1' r='4'/>
+<circle class='dot2' cx='240.0' cy='90.6' r='4'/>
+<circle class='dot1' cx='410.0' cy='81.0' r='4'/>
+<circle class='dot2' cx='410.0' cy='86.9' r='4'/>
+<circle class='dot1' cx='580.0' cy='80.1' r='4'/>
+<circle class='dot2' cx='580.0' cy='85.9' r='4'/>
+<circle class='dot1' cx='750.0' cy='79.1' r='4'/>
+<circle class='dot2' cx='750.0' cy='84.7' r='4'/>
+<line class='axis' x1='70' y1='360' x2='750' y2='360'/>
+<line class='axis' x1='70' y1='60' x2='70' y2='360'/>
+<text x='392.0' y='412'>epoch</text>
+<rect class='bar0' x='770' y='90' width='16' height='4'/><text x='792' y='96'>accuracy</text>
+<rect class='bar1' x='770' y='120' width='16' height='4'/><text x='792' y='126'>F1</text>
+</svg>

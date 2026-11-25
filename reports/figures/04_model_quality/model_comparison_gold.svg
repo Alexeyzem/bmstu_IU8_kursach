@@ -1,0 +1,44 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 420' width='900' height='420'>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2937; font-size: 13px; }
+.title { font-size: 18px; font-weight: 700; }
+.axis { stroke: #6b7280; stroke-width: 1; }
+.grid { stroke: #e5e7eb; stroke-width: 1; }
+.bar0 { fill: #2563eb; }
+.bar1 { fill: #dc2626; }
+.line1 { fill: none; stroke: #2563eb; stroke-width: 3; }
+.line2 { fill: none; stroke: #dc2626; stroke-width: 3; }
+.dot1 { fill: #2563eb; }
+.dot2 { fill: #dc2626; }
+</style>
+<text class='title' x='20' y='32'>1 epoch vs 5 epochs: external gold</text>
+<rect class='bar0' x='650' y='25' width='16' height='16'/><text x='672' y='38'>1 epoch</text>
+<rect class='bar1' x='760' y='25' width='16' height='16'/><text x='782' y='38'>5 epochs</text>
+<line class='grid' x1='80' y1='360.0' x2='865' y2='360.0'/>
+<text x='30' y='364.0'>0.00</text>
+<line class='grid' x1='80' y1='287.5' x2='865' y2='287.5'/>
+<text x='30' y='291.5'>0.25</text>
+<line class='grid' x1='80' y1='215.0' x2='865' y2='215.0'/>
+<text x='30' y='219.0'>0.50</text>
+<line class='grid' x1='80' y1='142.5' x2='865' y2='142.5'/>
+<text x='30' y='146.5'>0.75</text>
+<line class='grid' x1='80' y1='70.0' x2='865' y2='70.0'/>
+<text x='30' y='74.0'>1.00</text>
+<rect class='bar0' x='115' y='108.5' width='42' height='251.5' rx='3'/>
+<rect class='bar1' x='163' y='104.2' width='42' height='255.8' rx='3'/>
+<text x='107' y='395'>accuracy</text>
+<rect class='bar0' x='255' y='99.9' width='42' height='260.1' rx='3'/>
+<rect class='bar1' x='303' y='98.8' width='42' height='261.2' rx='3'/>
+<text x='247' y='395'>precision</text>
+<rect class='bar0' x='395' y='88.8' width='42' height='271.2' rx='3'/>
+<rect class='bar1' x='443' y='84.1' width='42' height='275.9' rx='3'/>
+<text x='387' y='395'>recall_tpr</text>
+<rect class='bar0' x='535' y='94.5' width='42' height='265.5' rx='3'/>
+<rect class='bar1' x='583' y='91.6' width='42' height='268.4' rx='3'/>
+<text x='527' y='395'>f1</text>
+<rect class='bar0' x='675' y='255.3' width='42' height='104.7' rx='3'/>
+<rect class='bar1' x='723' y='258.1' width='42' height='101.9' rx='3'/>
+<text x='667' y='395'>fpr</text>
+<line class='axis' x1='80' y1='360' x2='865' y2='360'/>
+<line class='axis' x1='80' y1='70' x2='80' y2='360'/>
+</svg>

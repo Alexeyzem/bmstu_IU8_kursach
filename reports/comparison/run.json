@@ -1,0 +1,20 @@
+{
+  "seed": 42,
+  "cutoff": 0.5,
+  "python": "3.14.6",
+  "versions": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "lightgbm": "4.7.0",
+    "catboost": "1.2.10",
+    "scikit-learn": "1.9.1",
+    "lief": "1.0.0"
+  },
+  "sha256": {
+    "outputs/research/random.csv": "ca83fa2defe20cce2fe07f7b4d98d131b6b5af0b68a4a0dfa38d84bd6c3beeb0",
+    "outputs/research/stratified.csv": "acef757eb0009d2cccdd75b094893442210cac551a5a0e9a8e3858960a89058b",
+    "outputs/research/gold_panel.csv": "2081c1a6fc4679a6d73112325d550c8b21d2a974e3f96748ec656bc80076e08d",
+    "outputs/research/quotas.csv": "d8f1953dd176769ecbc12cef0916da24e64132e05aa5bbb22b7e211d7660f0a6",
+    "outputs/features/selected_features.json": "8333ce69851f7252ae41eed1fec78eb2dbd33ab5702c773f0a0ef82fe4a8a86a"
+  }
+}

@@ -1,0 +1,53 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 980 460' width='980' height='460'>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2937; font-size: 13px; }
+.title { font-size: 18px; font-weight: 700; }
+.axis { stroke: #6b7280; stroke-width: 1; }
+.grid { stroke: #e5e7eb; stroke-width: 1; }
+.recall { fill: none; stroke: #059669; stroke-width: 3; }
+.fpr { fill: none; stroke: #dc2626; stroke-width: 3; }
+.fnr { fill: none; stroke: #d97706; stroke-width: 3; }
+.bar-strict { fill: #2563eb; }
+.bar-balanced { fill: #7c3aed; }
+.bar-sensitive { fill: #059669; }
+.dot-strict { fill: #2563eb; }
+.dot-balanced { fill: #7c3aed; }
+.dot-sensitive { fill: #059669; }
+</style>
+<text class='title' x='20' y='34'>LightGBM gold: режимы threshold</text>
+<rect class='bar-strict' x='650' y='22' width='14' height='14'/><text x='670' y='34'>Строгий</text>
+<rect class='bar-balanced' x='755' y='22' width='14' height='14'/><text x='775' y='34'>Сбалансированный</text>
+<rect class='bar-sensitive' x='860' y='22' width='14' height='14'/><text x='880' y='34'>Чувствительный</text>
+<line class='grid' x1='80' y1='385.0' x2='945' y2='385.0'/>
+<text x='30' y='389.0'>0.00</text>
+<line class='grid' x1='80' y1='306.2' x2='945' y2='306.2'/>
+<text x='30' y='310.2'>0.25</text>
+<line class='grid' x1='80' y1='227.5' x2='945' y2='227.5'/>
+<text x='30' y='231.5'>0.50</text>
+<line class='grid' x1='80' y1='148.8' x2='945' y2='148.8'/>
+<text x='30' y='152.8'>0.75</text>
+<line class='grid' x1='80' y1='70.0' x2='945' y2='70.0'/>
+<text x='30' y='74.0'>1.00</text>
+<rect class='bar-strict' x='110' y='252.4' width='28' height='132.6' rx='3'/>
+<rect class='bar-balanced' x='144' y='115.2' width='28' height='269.8' rx='3'/>
+<rect class='bar-sensitive' x='178' y='85.4' width='28' height='299.6' rx='3'/>
+<text x='105' y='430'>Recall</text>
+<rect class='bar-strict' x='260' y='375.6' width='28' height='9.4' rx='3'/>
+<rect class='bar-balanced' x='294' y='322.1' width='28' height='62.9' rx='3'/>
+<rect class='bar-sensitive' x='328' y='275.0' width='28' height='110.0' rx='3'/>
+<text x='255' y='430'>FPR</text>
+<rect class='bar-strict' x='410' y='202.6' width='28' height='182.4' rx='3'/>
+<rect class='bar-balanced' x='444' y='339.8' width='28' height='45.2' rx='3'/>
+<rect class='bar-sensitive' x='478' y='369.6' width='28' height='15.4' rx='3'/>
+<text x='405' y='430'>FNR</text>
+<rect class='bar-strict' x='560' y='76.5' width='28' height='308.5' rx='3'/>
+<rect class='bar-balanced' x='594' y='90.4' width='28' height='294.6' rx='3'/>
+<rect class='bar-sensitive' x='628' y='101.0' width='28' height='284.0' rx='3'/>
+<text x='555' y='430'>Precision</text>
+<rect class='bar-strict' x='710' y='199.5' width='28' height='185.5' rx='3'/>
+<rect class='bar-balanced' x='744' y='103.4' width='28' height='281.6' rx='3'/>
+<rect class='bar-sensitive' x='778' y='93.4' width='28' height='291.6' rx='3'/>
+<text x='705' y='430'>F1</text>
+<line class='axis' x1='80' y1='385' x2='945' y2='385'/>
+<line class='axis' x1='80' y1='70' x2='80' y2='385'/>
+</svg>

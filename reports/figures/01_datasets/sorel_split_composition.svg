@@ -1,0 +1,31 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 320' width='900' height='320'>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2937; font-size: 13px; }
+.title { font-size: 18px; font-weight: 700; }
+.subtitle { fill: #4b5563; font-size: 12px; }
+.axis { stroke: #6b7280; stroke-width: 1; }
+.grid { stroke: #e5e7eb; stroke-width: 1; }
+.bar0 { fill: #2563eb; }
+.bar1 { fill: #dc2626; }
+.bar2 { fill: #059669; }
+.bar3 { fill: #d97706; }
+.line1 { fill: none; stroke: #2563eb; stroke-width: 2; }
+.line2 { fill: none; stroke: #dc2626; stroke-width: 2; }
+.line3 { fill: none; stroke: #059669; stroke-width: 2; }
+.cell-good { fill: #d1fae5; }
+.cell-bad { fill: #fee2e2; }
+.cell-neutral { fill: #e0f2fe; }
+</style>
+<text class='title' x='20' y='30'>SOREL split composition</text>
+<rect class='bar0' x='20' y='45' width='14' height='14'/><text x='42' y='57'>benign/safe</text>
+<rect class='bar1' x='190' y='45' width='14' height='14'/><text x='212' y='57'>malicious/dangerous</text>
+<text x='20' y='100'>train</text>
+<rect class='bar0' x='230' y='70' width='427.7' height='24' rx='3'/><text x='665.7' y='87'>5 269 731</text>
+<rect class='bar1' x='230' y='100' width='620.0' height='24' rx='3'/><text x='858.0' y='117'>7 639 024</text>
+<text x='20' y='172'>validation</text>
+<rect class='bar0' x='230' y='142' width='128.4' height='24' rx='3'/><text x='366.4' y='159'>1 581 886</text>
+<rect class='bar1' x='230' y='172' width='78.2' height='24' rx='3'/><text x='316.2' y='189'>962 900</text>
+<text x='20' y='244'>test</text>
+<rect class='bar0' x='230' y='214' width='236.2' height='24' rx='3'/><text x='474.2' y='231'>2 910 560</text>
+<rect class='bar1' x='230' y='244' width='110.5' height='24' rx='3'/><text x='348.5' y='261'>1 360 896</text>
+</svg>

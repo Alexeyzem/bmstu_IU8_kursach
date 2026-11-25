@@ -1,0 +1,33 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 360' width='900' height='360'>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2937; font-size: 13px; }
+.title { font-size: 18px; font-weight: 700; }
+.subtitle { fill: #4b5563; font-size: 12px; }
+.axis { stroke: #6b7280; stroke-width: 1; }
+.grid { stroke: #e5e7eb; stroke-width: 1; }
+.bar0 { fill: #2563eb; }
+.bar1 { fill: #dc2626; }
+.bar2 { fill: #059669; }
+.bar3 { fill: #d97706; }
+.line1 { fill: none; stroke: #2563eb; stroke-width: 2; }
+.line2 { fill: none; stroke: #dc2626; stroke-width: 2; }
+.line3 { fill: none; stroke: #059669; stroke-width: 2; }
+.cell-good { fill: #d1fae5; }
+.cell-bad { fill: #fee2e2; }
+.cell-neutral { fill: #e0f2fe; }
+</style>
+<text class='title' x='20' y='30'>Removed feature reasons</text>
+<text x='20' y='78'>constant</text>
+<rect class='bar3' x='260' y='56' width='333.3' height='26' rx='3'/>
+<text x='601.3' y='75'>45</text>
+<text x='20' y='120'>near_constant_zero_fraction&gt;=0.999</text>
+<rect class='bar3' x='260' y='98' width='177.8' height='26' rx='3'/>
+<text x='445.8' y='117'>24</text>
+<text x='20' y='162'>high_zero_fraction&gt;=0.995</text>
+<rect class='bar3' x='260' y='140' width='288.9' height='26' rx='3'/>
+<text x='556.9' y='159'>39</text>
+<text x='20' y='204'>correlated_abs_pearson&gt;=0.95_lower_mi_or_more_sparse</text>
+<rect class='bar3' x='260' y='182' width='600.0' height='26' rx='3'/>
+<text x='868.0' y='201'>81</text>
+<line class='axis' x1='260' y1='318' x2='860' y2='318'/>
+</svg>
