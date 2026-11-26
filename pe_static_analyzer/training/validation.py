@@ -7,7 +7,7 @@ from time import monotonic
 
 from pe_static_analyzer.training.boosting import COMPARISON_TREES, LIGHTGBM_TREES, BoostingModel
 from pe_static_analyzer.core.metrics import binary_classification_metrics
-from pe_static_analyzer.gold.comparison import ExternalPanel
+from pe_static_analyzer.gold.panel import ExternalPanel
 import lmdb
 import pandas as pd
 from sklearn.metrics import average_precision_score

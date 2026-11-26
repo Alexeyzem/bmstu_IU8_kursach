@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pe_static_analyzer.training.boosting import BoostingModel
-from pe_static_analyzer.training.evaluation import calibrated_probabilities
+from pe_static_analyzer.evaluation.calibration import calibrated_probabilities
 
 from pe_static_analyzer.sorel.data import load_selected_indices, load_split
 

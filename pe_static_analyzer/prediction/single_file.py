@@ -13,36 +13,14 @@ import hashlib
 import json
 from pathlib import Path
 
-import joblib
-import numpy as np
-
+from pe_static_analyzer.prediction.model import ModelPayloadScorer, load_model_payload
+from pe_static_analyzer.settings import DEFAULT_MODEL
 from pe_static_analyzer.core.pe_input import read_pe_bytes
-from pe_static_analyzer.features.ember import FEATURE_DIM, PEFeatureExtractor, is_probably_pe, sorel_signed_log_postprocess
+from pe_static_analyzer.features.ember import FEATURE_DIM, PEFeatureExtractor, is_probably_pe
 
 
-class ModelPayloadScorer:
-    """Score selected EMBER features with an SGD or LightGBM payload."""
-
-    def __init__(self, payload: dict[str, object]) -> None:
-        self.payload = payload
-        self.selected_indices = np.asarray(payload["selected_indices"], dtype=np.int32)
-        self.model_type = str(payload.get("model_type", "sgd"))
-
-    def score_vector(self, vector: np.ndarray) -> float:
-        if self.payload.get("postprocess") == "sorel_signed_log":
-            vector = sorel_signed_log_postprocess(vector)
-        x = vector[self.selected_indices].reshape(1, -1)
-        if self.model_type == "lightgbm":
-            import lightgbm as lgb
-
-            booster = lgb.Booster(model_str=self.payload["model_string"])
-            return float(booster.predict(x)[0])
-        x_scaled = self.payload["scaler"].transform(x)
-        return float(self.payload["model"].predict_proba(x_scaled)[0, 1])
-
-
-def predict_file(path: Path, model_path: Path, malwarebazaar_zip: bool, threshold: float) -> dict[str, object]:
-    payload = joblib.load(model_path)
+def predict_file(path: Path, model_path: Path = DEFAULT_MODEL, malwarebazaar_zip: bool = False, threshold: float = 0.5) -> dict[str, object]:
+    payload = load_model_payload(model_path)
     data = read_pe_bytes(path, malwarebazaar_zip)
     input_mode = "malwarebazaar_zip_in_memory" if malwarebazaar_zip else "raw_pe"
     if not is_probably_pe(data):
@@ -70,7 +48,7 @@ def predict_file(path: Path, model_path: Path, malwarebazaar_zip: bool, threshol
 
 
 INPUT_FILE = Path("sample.exe")
-MODEL_FILE = Path("outputs/models/baseline_sgd.pkl")
+MODEL_FILE = DEFAULT_MODEL
 READ_ENCRYPTED_ARCHIVE = False
 
 

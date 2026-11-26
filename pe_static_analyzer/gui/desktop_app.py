@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pe_static_analyzer.settings import DEFAULT_MODEL
 from pe_static_analyzer.core.pe_input import sha256_file
 import queue
 
@@ -22,13 +23,14 @@ ALLOWED_SUFFIXES = (".exe", ".dll", ".pe", ".exe.txt", ".dll.txt", ".pe.txt", ".
 @dataclass(frozen=True)
 class ModelMode:
     label: str
-    filename: str
+    path: Path
     description: str
 
 
 MODES = {
-    "sgd": ModelMode("SGD baseline", "baseline_sgd.pkl", "Линейная базовая модель"),
-    "lightgbm": ModelMode("LightGBM", "lightgbm_pe_full.pkl", "Градиентный бустинг"),
+    "lightgbm_full": ModelMode("LightGBM (исторический)", ROOT_DIR / "outputs/models/lightgbm_pe_full.pkl", "Исходная модель полного опыта"),
+    "sgd": ModelMode("SGD baseline", ROOT_DIR / "outputs/models/baseline_sgd.pkl", "Линейная базовая модель"),
+    "lightgbm": ModelMode("LightGBM (600, без заголовка)", DEFAULT_MODEL, "2 155 статических признаков"),
 }
 MODE_LABEL_TO_KEY = {mode.label: key for key, mode in MODES.items()}
 
@@ -67,7 +69,7 @@ def run_prediction(path: Path, mode_key: str) -> dict[str, object]:
     mode = MODES.get(mode_key)
     if mode is None:
         raise ValueError(f"Неизвестный режим: {mode_key}")
-    model_path = ROOT_DIR / "outputs" / "models" / mode.filename
+    model_path = mode.path
     if not model_path.exists():
         raise FileNotFoundError(f"Не найдена модель: {model_path}")
 
@@ -115,7 +117,7 @@ class PeCheckerApp:
         self.root.title("Статическая проверка PE-файла")
         self.selected_path: Path | None = None
         self.results: queue.Queue[tuple[str, object]] = queue.Queue()
-        self.mode_label = StringVar(value=MODES["sgd"].label)
+        self.mode_label = StringVar(value=MODES["lightgbm"].label)
 
         self.status = StringVar(value="Выберите .exe/.dll/.pe, defanged .*.txt или MalwareBazaar .zip/.zip.txt")
         Label(root, textvariable=self.status, anchor="w", justify=LEFT, padx=10, pady=8).pack(fill="x")

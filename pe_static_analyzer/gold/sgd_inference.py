@@ -20,27 +20,10 @@ from typing import Any
 import joblib
 import numpy as np
 
-
-from pe_static_analyzer.core.metrics import scored_rows_metrics
-from pe_static_analyzer.features.extraction import FEATURE_DIM, gold_vector
+from pe_static_analyzer.features.ember import FEATURE_DIM
+from pe_static_analyzer.gold.extraction import gold_vector
 from pe_static_analyzer.gold.io import append_csv, completed_sample_ids, ensure_csv, load_metadata, load_prediction_rows
-
-PREDICTION_FIELDS = [
-    "sample_id",
-    "label",
-    "source",
-    "sha256",
-    "stored_path",
-    "input_mode",
-    "feature_dim_original",
-    "feature_dim_model",
-    "malware_probability",
-    "threshold",
-    "prediction",
-    "prediction_label",
-    "error",
-]
-ERROR_FIELDS = ["sample_id", "label", "sha256", "stored_path", "error"]
+from pe_static_analyzer.gold.results import ERROR_FIELDS, PREDICTION_FIELDS, error_row, scored_row, write_metrics
 
 
 @dataclass
@@ -57,48 +40,7 @@ class GoldSgdSettings:
     postprocess: str = 'model'
 
 
-def base_error_row(row: dict[str, str], payload: dict[str, Any], threshold: float, error: str) -> dict[str, Any]:
-    return {
-        "sample_id": int(row.get("sample_id", 0) or 0),
-        "label": row.get("label", ""),
-        "source": row.get("source", ""),
-        "sha256": row.get("sha256", ""),
-        "stored_path": row.get("stored_path", ""),
-        "input_mode": "",
-        "feature_dim_original": FEATURE_DIM,
-        "feature_dim_model": len(payload.get("selected_indices", [])),
-        "malware_probability": "",
-        "threshold": threshold,
-        "prediction": "",
-        "prediction_label": "",
-        "error": error,
-    }
-
-
-def write_metrics(path: Path, rows: list[dict[str, Any]], threshold: float, settings: GoldSgdSettings, threshold_source: str, started: float) -> None:
-    payload = scored_rows_metrics(rows, threshold)
-    payload.update(
-        {
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "metadata": str(settings.metadata),
-            "model": str(settings.model),
-            "threshold_source": threshold_source,
-            "predictions": str(settings.predictions_output),
-            "errors": str(settings.errors_output),
-            "feature_dim_original": FEATURE_DIM,
-            "feature_dim_model": int(settings.feature_dim_model),
-            "postprocess": settings.postprocess,
-            "sample_timeout": settings.sample_timeout,
-            "runtime_seconds": round(time.time() - started, 3),
-            "safety": "PE bytes are parsed statically only; MalwareBazaar ZIP members are read in memory and raw malware PE is not written to disk.",
-        }
-    )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
-
-
 def score_one(row: dict[str, str], payload: dict[str, Any], threshold: float, postprocess: str) -> dict[str, Any]:
-    label = int(row["label"])
     if postprocess == "model":
         postprocess = "sorel_signed_log" if payload.get("postprocess") == "sorel_signed_log" else "raw"
     vector, feature_sha, input_mode = gold_vector(row, postprocess, require_hash=False)
@@ -106,29 +48,15 @@ def score_one(row: dict[str, str], payload: dict[str, Any], threshold: float, po
     x = vector[selected_indices].reshape(1, -1)
     x_scaled = payload["scaler"].transform(x)
     probability = float(payload["model"].predict_proba(x_scaled)[0, 1])
-    prediction = int(probability >= threshold)
-    return {
-        "sample_id": int(row["sample_id"]),
-        "label": label,
-        "source": row.get("source", ""),
-        "sha256": feature_sha,
-        "stored_path": row.get("stored_path", ""),
-        "input_mode": input_mode,
-        "feature_dim_original": FEATURE_DIM,
-        "feature_dim_model": int(len(selected_indices)),
-        "malware_probability": probability,
-        "threshold": threshold,
-        "prediction": prediction,
-        "prediction_label": "malicious_or_dangerous" if prediction else "benign_or_safe",
-        "error": "",
-    }
+    metadata = dict(row, sha256=feature_sha, input_mode=input_mode)
+    return scored_row(metadata, len(selected_indices), probability, threshold)
 
 
 def score_one_catching(row: dict[str, str], payload: dict[str, Any], threshold: float, postprocess: str) -> dict[str, Any]:
     try:
         return score_one(row, payload, threshold, postprocess)
     except Exception as exc:  # noqa: BLE001 - batch inference records per-sample failures and continues.
-        return base_error_row(row, payload, threshold, str(exc))
+        return error_row(row, len(payload.get("selected_indices", [])), threshold, str(exc))
 
 
 def score_one_worker(row: dict[str, str], payload: dict[str, Any], threshold: float, postprocess: str, queue: mp.Queue) -> None:
@@ -146,11 +74,11 @@ def score_one_with_timeout(row: dict[str, str], payload: dict[str, Any], thresho
     if process.is_alive():
         process.terminate()
         process.join(5)
-        return base_error_row(row, payload, threshold, f"sample_timeout_seconds={timeout}")
+        return error_row(row, len(payload.get("selected_indices", [])), threshold, f"sample_timeout_seconds={timeout}")
     if process.exitcode != 0:
-        return base_error_row(row, payload, threshold, f"worker_exitcode={process.exitcode}")
+        return error_row(row, len(payload.get("selected_indices", [])), threshold, f"worker_exitcode={process.exitcode}")
     if queue.empty():
-        return base_error_row(row, payload, threshold, "worker_returned_no_result")
+        return error_row(row, len(payload.get("selected_indices", [])), threshold, "worker_returned_no_result")
     return queue.get()
 
 
@@ -202,10 +130,7 @@ class GoldSgdInferenceJob:
             result = score_one_with_timeout(row, payload, threshold, settings.postprocess, settings.sample_timeout)
             append_csv(settings.predictions_output, PREDICTION_FIELDS, result)
             all_rows.append(result)
-            if result.get("error", "") != "":
-                append_csv(settings.errors_output, ERROR_FIELDS, result)
-            else:
-                append_csv(settings.errors_output, ERROR_FIELDS, {"sample_id": result["sample_id"], "label": result["label"], "sha256": result["sha256"], "stored_path": result["stored_path"], "error": ""})
+            append_csv(settings.errors_output, ERROR_FIELDS, result)
             write_metrics(settings.metrics_output, all_rows, threshold, settings, threshold_source, started)
 
         write_metrics(settings.metrics_output, all_rows, threshold, settings, threshold_source, started)

@@ -1,12 +1,13 @@
 """Compare signed contributions for missed and detected malware on the gold panel."""
+import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
+from pe_static_analyzer.evaluation.shap_values import tree_contributions
 from pe_static_analyzer.features.schema import build_feature_schema
-from pe_static_analyzer.gold.comparison import ExternalPanel
+from pe_static_analyzer.gold.panel import ExternalPanel
 from pe_static_analyzer.settings import ACTIVE_EXPERIMENT
 from pe_static_analyzer.sorel.data import load_selected_indices
 from pe_static_analyzer.training.boosting import FINAL_MODEL_NAME, BoostingModel
@@ -15,14 +16,15 @@ from pe_static_analyzer.training.boosting import FINAL_MODEL_NAME, BoostingModel
 def compare_gold_errors(model_name=FINAL_MODEL_NAME):
     work = ACTIVE_EXPERIMENT.work
     out = ACTIVE_EXPERIMENT.report / model_name / "gold"
-    indices = load_selected_indices(Path("outputs/features/selected_features.json"))
+    if model_name == FINAL_MODEL_NAME:
+        indices = json.loads((work / f"{model_name}.indices.json").read_text())
+    else:
+        indices = load_selected_indices(Path("outputs/features/selected_features.json"))
     panel = ExternalPanel.load(work / "gold_panel", indices)
     features = panel.features[panel.rows.label == 1]
     model = BoostingModel.load(work / f"{model_name}.txt").estimator
-    contributions = model.predict(features, pred_contrib=True)
-    margins = model.predict(features, raw_score=True)
-    np.testing.assert_allclose(contributions.sum(axis=1), margins, atol=1e-6)
-    detected = model.predict(features) >= 0.5
+    contributions, margins = tree_contributions(model, features)
+    detected = margins >= 0.0
     if detected.all() or not detected.any():
         raise ValueError("The panel must contain both missed and detected malware.")
 

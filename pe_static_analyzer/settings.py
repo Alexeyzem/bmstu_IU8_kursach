@@ -3,6 +3,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+DEFAULT_MODEL = Path(__file__).resolve().parents[1] / "examples/lightgbm.txt"
+
+
 @dataclass(frozen=True)
 class Experiment:
     size: int

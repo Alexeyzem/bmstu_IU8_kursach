@@ -18,44 +18,28 @@ import queue as queue_module
 import time
 from typing import Any
 
-import joblib
 import numpy as np
 
-
-from pe_static_analyzer.core.metrics import scored_rows_metrics
-from pe_static_analyzer.features.extraction import FEATURE_DIM, gold_vector
+from pe_static_analyzer.prediction.model import load_model_payload
+from pe_static_analyzer.settings import DEFAULT_MODEL
+from pe_static_analyzer.features.ember import FEATURE_DIM
+from pe_static_analyzer.gold.extraction import gold_vector
 from pe_static_analyzer.gold.io import append_csv, completed_success_ids, ensure_csv, load_metadata, load_prediction_rows
-
-PREDICTION_FIELDS = [
-    "sample_id",
-    "label",
-    "source",
-    "sha256",
-    "stored_path",
-    "input_mode",
-    "feature_dim_original",
-    "feature_dim_model",
-    "malware_probability",
-    "threshold",
-    "prediction",
-    "prediction_label",
-    "error",
-]
-ERROR_FIELDS = ["sample_id", "label", "sha256", "stored_path", "error"]
+from pe_static_analyzer.gold.results import ERROR_FIELDS, PREDICTION_FIELDS, error_row, scored_row, write_metrics
 
 
 @dataclass
 class ParallelGoldLightGbmSettings:
     metadata: Path = Path('outputs/gold/gold_final_metadata.csv')
-    model: Path = Path('outputs/models/lightgbm_pe_full.pkl')
-    predictions_output: Path = Path('outputs/metrics/predictions_gold_lightgbm_fast.csv')
-    metrics_output: Path = Path('outputs/metrics/gold_metrics_lightgbm_fast.json')
-    errors_output: Path = Path('outputs/metrics/gold_inference_errors_lightgbm_fast.csv')
+    model: Path = DEFAULT_MODEL
+    predictions_output: Path = Path('outputs/metrics/predictions_gold_without_header_600.csv')
+    metrics_output: Path = Path('outputs/metrics/gold_metrics_without_header_600.json')
+    errors_output: Path = Path('outputs/metrics/gold_inference_errors_without_header_600.csv')
     limit: int | None = None
     dry_run: bool = False
     resume: bool = False
-    workers: int = 8
-    sample_timeout: int = 10
+    workers: int = 4
+    sample_timeout: int = 90
     start_method: str = 'spawn'
     postprocess: str = 'model'
     metrics_every: int = 25
@@ -65,7 +49,7 @@ class ParallelGoldLightGbmSettings:
 def load_payload(path: Path) -> dict[str, Any]:
     import lightgbm as lgb
 
-    payload = joblib.load(path)
+    payload = load_model_payload(path)
     if payload.get("model_type") != "lightgbm":
         raise RuntimeError(f"model payload is not LightGBM: {path}")
     if "model_string" not in payload:
@@ -74,24 +58,6 @@ def load_payload(path: Path) -> dict[str, Any]:
         raise RuntimeError("LightGBM payload missing selected_indices")
     payload["booster"] = lgb.Booster(model_str=payload["model_string"])
     return payload
-
-
-def base_row(row: dict[str, str], feature_dim_model: int, threshold: float, error: str) -> dict[str, Any]:
-    return {
-        "sample_id": int(row.get("sample_id", 0) or 0),
-        "label": row.get("label", ""),
-        "source": row.get("source", ""),
-        "sha256": row.get("sha256", ""),
-        "stored_path": row.get("stored_path", ""),
-        "input_mode": "",
-        "feature_dim_original": FEATURE_DIM,
-        "feature_dim_model": feature_dim_model,
-        "malware_probability": "",
-        "threshold": threshold,
-        "prediction": "",
-        "prediction_label": "",
-        "error": error,
-    }
 
 
 def extract_feature(row: dict[str, str], extraction_postprocess: str) -> dict[str, Any]:
@@ -115,86 +81,43 @@ def extract_worker(row: dict[str, str], extraction_postprocess: str, queue: mp.Q
         queue.put({"ok": False, "error": str(exc)})
 
 
-def write_metrics(path: Path, rows: list[dict[str, Any]], threshold: float, settings: ParallelGoldLightGbmSettings, threshold_source: str, started: float) -> None:
-    payload = scored_rows_metrics(rows, threshold)
-    payload.update(
-        {
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "metadata": str(settings.metadata),
-            "model": str(settings.model),
-            "threshold_source": threshold_source,
-            "predictions": str(settings.predictions_output),
-            "errors": str(settings.errors_output),
-            "feature_dim_original": FEATURE_DIM,
-            "feature_dim_model": int(settings.feature_dim_model),
-            "postprocess": settings.postprocess,
-            "extraction_postprocess": settings.extraction_postprocess,
-            "sample_timeout": settings.sample_timeout,
-            "workers": settings.workers,
-            "runtime_seconds": round(time.time() - started, 3),
-            "safety": "PE bytes are parsed statically only; MalwareBazaar ZIP members are read in memory and raw malware PE is not written to disk.",
-        }
-    )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
-
-
 def predict_from_feature(feature: dict[str, Any], payload: dict[str, Any], threshold: float) -> dict[str, Any]:
     selected_indices = np.asarray(payload["selected_indices"], dtype=np.int32)
-    vector = feature.pop("vector")
+    vector = feature["vector"]
     x = vector[selected_indices].reshape(1, -1)
     probability = float(payload["booster"].predict(x)[0])
-    prediction = int(probability >= threshold)
-    return {
-        "sample_id": int(feature["sample_id"]),
-        "label": int(feature["label"]),
-        "source": feature.get("source", ""),
-        "sha256": feature["sha256"],
-        "stored_path": feature.get("stored_path", ""),
-        "input_mode": feature.get("input_mode", ""),
-        "feature_dim_original": FEATURE_DIM,
-        "feature_dim_model": int(len(selected_indices)),
-        "malware_probability": probability,
-        "threshold": threshold,
-        "prediction": prediction,
-        "prediction_label": "malicious_or_dangerous" if prediction else "benign_or_safe",
-        "error": "",
-    }
+    return scored_row(feature, len(selected_indices), probability, threshold)
 
 
 def finish_process(process: mp.Process, queue: mp.Queue, row: dict[str, str], payload: dict[str, Any], threshold: float, error: str | None = None) -> dict[str, Any]:
     feature_dim_model = int(len(payload["selected_indices"]))
     if error is not None:
-        return base_row(row, feature_dim_model, threshold, error)
+        return error_row(row, feature_dim_model, threshold, error)
     if process.exitcode != 0:
-        return base_row(row, feature_dim_model, threshold, f"worker_exitcode={process.exitcode}")
+        return error_row(row, feature_dim_model, threshold, f"worker_exitcode={process.exitcode}")
     try:
         message = queue.get(timeout=1)
     except queue_module.Empty:
-        return base_row(row, feature_dim_model, threshold, "worker_returned_no_result")
+        return error_row(row, feature_dim_model, threshold, "worker_returned_no_result")
     if not message.get("ok"):
-        return base_row(row, feature_dim_model, threshold, str(message.get("error", "unknown_error")))
+        return error_row(row, feature_dim_model, threshold, str(message.get("error", "unknown_error")))
     return predict_from_feature(message["result"], payload, threshold)
 
 
 def append_outputs(result: dict[str, Any], predictions_output: Path, errors_output: Path) -> None:
     append_csv(predictions_output, PREDICTION_FIELDS, result)
-    append_csv(
-        errors_output,
-        ERROR_FIELDS,
-        {
-            "sample_id": result["sample_id"],
-            "label": result["label"],
-            "sha256": result["sha256"],
-            "stored_path": result["stored_path"],
-            "error": result.get("error", ""),
-        },
-    )
+    if not result.get("error"):
+        return
+    append_csv(errors_output, ERROR_FIELDS, result)
 
 
 def run_parallel(rows: list[dict[str, str]], payload: dict[str, Any], threshold: float, settings: ParallelGoldLightGbmSettings, threshold_source: str) -> list[dict[str, Any]]:
     ctx = mp.get_context(settings.start_method)
     started = time.time()
+    def save_metrics():
+        write_metrics(settings.metrics_output, all_rows, threshold, settings, threshold_source, started,
+                      extraction_postprocess=settings.extraction_postprocess, workers=settings.workers)
+
     done_success = completed_success_ids(settings.predictions_output) if settings.resume else set()
     all_rows: list[dict[str, Any]] = [row for row in load_prediction_rows(settings.predictions_output) if row.get("error", "") == ""] if settings.resume else []
     pending = [row for row in rows if int(row["sample_id"]) not in done_success]
@@ -241,7 +164,7 @@ def run_parallel(rows: list[dict[str, str]], payload: dict[str, Any], threshold:
             finished.append(key)
 
             if settings.metrics_every > 0 and processed_this_run % settings.metrics_every == 0:
-                write_metrics(settings.metrics_output, all_rows, threshold, settings, threshold_source, started)
+                save_metrics()
             if settings.progress_every > 0 and processed_this_run % settings.progress_every == 0:
                 print(json.dumps({"stage": "gold_progress", "processed_this_run": processed_this_run, "total_rows_in_outputs": len(all_rows), "pending_total": len(pending), "scored_rows": sum(1 for item in all_rows if item.get("error", "") == ""), "runtime_seconds": round(time.time() - started, 3)}, ensure_ascii=False), flush=True)
 
@@ -251,7 +174,7 @@ def run_parallel(rows: list[dict[str, str]], payload: dict[str, Any], threshold:
         if not finished:
             time.sleep(0.05)
 
-    write_metrics(settings.metrics_output, all_rows, threshold, settings, threshold_source, started)
+    save_metrics()
     return all_rows
 
 

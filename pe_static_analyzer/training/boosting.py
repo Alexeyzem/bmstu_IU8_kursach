@@ -6,10 +6,12 @@ from catboost import CatBoostClassifier
 from lightgbm import Booster, LGBMClassifier
 
 from pe_static_analyzer.core.metrics import binary_classification_metrics
-from pe_static_analyzer.training.evaluation import calibration_metrics, explain
+from pe_static_analyzer.evaluation.calibration import calibration_metrics
+from pe_static_analyzer.evaluation.shap_values import explain
 
 LIGHTGBM_TREES = 600
-FINAL_MODEL_NAME = f"final_lightgbm_{LIGHTGBM_TREES}"
+FULL_FEATURE_MODEL_NAME = f"final_lightgbm_{LIGHTGBM_TREES}"
+FINAL_MODEL_NAME = f"without_header_{LIGHTGBM_TREES}"
 COMPARISON_TREES = 100
 LEARNING_RATE = 0.08
 MODEL_SEED = 42
