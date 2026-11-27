@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from pe_static_analyzer.settings import DEFAULT_MODEL
 from pe_static_analyzer.core.pe_input import sha256_file
 import queue
@@ -12,34 +10,12 @@ import queue
 import threading
 import traceback
 from pathlib import Path
-from tkinter import BOTH, END, LEFT, NORMAL, DISABLED, RIGHT, Button, Frame, Label, OptionMenu, StringVar, Text, Tk, filedialog, messagebox
+from tkinter import BOTH, END, LEFT, NORMAL, DISABLED, RIGHT, Button, Frame, Label, StringVar, Text, Tk, filedialog, messagebox
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
 ALLOWED_SUFFIXES = (".exe", ".dll", ".pe", ".exe.txt", ".dll.txt", ".pe.txt", ".zip", ".zip.txt")
-
-
-@dataclass(frozen=True)
-class ModelMode:
-    label: str
-    path: Path
-    description: str
-
-
-MODES = {
-    "lightgbm_full": ModelMode("LightGBM (исторический)", ROOT_DIR / "outputs/models/lightgbm_pe_full.pkl", "Исходная модель полного опыта"),
-    "sgd": ModelMode("SGD baseline", ROOT_DIR / "outputs/models/baseline_sgd.pkl", "Линейная базовая модель"),
-    "lightgbm": ModelMode("LightGBM (600, без заголовка)", DEFAULT_MODEL, "2 155 статических признаков"),
-}
-MODE_LABEL_TO_KEY = {mode.label: key for key, mode in MODES.items()}
-
-
-def mode_key_from_label(label: str) -> str:
-    try:
-        return MODE_LABEL_TO_KEY[label]
-    except KeyError as exc:
-        raise ValueError(f"Неизвестный режим: {label}") from exc
 
 
 try:
@@ -58,7 +34,7 @@ def is_malwarebazaar_zip(path: Path) -> bool:
     return name.endswith(".zip") or name.endswith(".zip.txt")
 
 
-def run_prediction(path: Path, mode_key: str) -> dict[str, object]:
+def run_prediction(path: Path) -> dict[str, object]:
     if not path.exists():
         raise FileNotFoundError(f"Файл не найден: {path}")
     if not path.is_file():
@@ -66,23 +42,13 @@ def run_prediction(path: Path, mode_key: str) -> dict[str, object]:
     if not is_supported_file(path):
         raise ValueError("Поддерживаются только .exe/.dll/.pe, defanged .*.txt или MalwareBazaar .zip/.zip.txt.")
 
-    mode = MODES.get(mode_key)
-    if mode is None:
-        raise ValueError(f"Неизвестный режим: {mode_key}")
-    model_path = mode.path
-    if not model_path.exists():
-        raise FileNotFoundError(f"Не найдена модель: {model_path}")
-
     from pe_static_analyzer.prediction.single_file import predict_file
 
-    result = predict_file(path, model_path, is_malwarebazaar_zip(path), 0.5)
+    result = predict_file(path, malwarebazaar_zip=is_malwarebazaar_zip(path))
     result["source_file_sha256"] = sha256_file(path)
     result["source_file_size_bytes"] = path.stat().st_size
     result["threshold_source"] = "фиксированный порог"
-    result["mode_key"] = mode_key
-    result["mode_label"] = MODES[mode_key].label
-    result["mode_description"] = mode.description
-    result["model_path"] = str(model_path.relative_to(ROOT_DIR))
+    result["model_path"] = str(DEFAULT_MODEL.relative_to(ROOT_DIR))
     return result
 
 
@@ -90,11 +56,10 @@ def format_result(result: dict[str, object]) -> str:
     probability = float(result["malware_probability"])
     threshold = float(result["threshold"])
     dangerous = probability >= threshold
-    verdict = "уязвимо/опасно" if dangerous else "не уязвимо/безопасно"
+    verdict = "вредоносный" if dangerous else "легитимный"
     return "\n".join(
         [
             f"Результат: {verdict}",
-            f"Режим: {result.get('mode_label', '-')} — {result.get('mode_description', '-')}",
             f"Модель: {result.get('model_path', '-')} ({result.get('model_type', '-')})",
             f"Вероятность опасного файла: {probability:.6f}",
             f"Порог: {threshold:.6f} ({result.get('threshold_source', 'неизвестно')})",
@@ -117,7 +82,6 @@ class PeCheckerApp:
         self.root.title("Статическая проверка PE-файла")
         self.selected_path: Path | None = None
         self.results: queue.Queue[tuple[str, object]] = queue.Queue()
-        self.mode_label = StringVar(value=MODES["lightgbm"].label)
 
         self.status = StringVar(value="Выберите .exe/.dll/.pe, defanged .*.txt или MalwareBazaar .zip/.zip.txt")
         Label(root, textvariable=self.status, anchor="w", justify=LEFT, padx=10, pady=8).pack(fill="x")
@@ -125,8 +89,6 @@ class PeCheckerApp:
         buttons = Frame(root)
         buttons.pack(fill="x", padx=10, pady=4)
         Button(buttons, text="Выбрать файл", command=self.choose_file).pack(side=LEFT)
-        Label(buttons, text="Режим:").pack(side=LEFT, padx=(12, 4))
-        OptionMenu(buttons, self.mode_label, *MODE_LABEL_TO_KEY).pack(side=LEFT)
         self.check_button = Button(buttons, text="Проверить", command=self.start_check, state=DISABLED)
         self.check_button.pack(side=RIGHT)
 
@@ -177,15 +139,14 @@ class PeCheckerApp:
             messagebox.showwarning("Нет файла", "Сначала выберите файл.")
             return
         self.check_button.configure(state=DISABLED)
-        mode_key = mode_key_from_label(self.mode_label.get())
-        self.write_output(f"Идёт статическое извлечение признаков и проверка моделью ({MODES[mode_key].label})...\n")
-        thread = threading.Thread(target=self._worker, args=(self.selected_path, mode_key), daemon=True)
+        self.write_output("Проверка LightGBM на 600 деревьях без заголовка PE…\n")
+        thread = threading.Thread(target=self._worker, args=(self.selected_path,), daemon=True)
         thread.start()
         self.root.after(100, self.poll_result)
 
-    def _worker(self, path: Path, mode_key: str) -> None:
+    def _worker(self, path: Path) -> None:
         try:
-            self.results.put(("ok", run_prediction(path, mode_key)))
+            self.results.put(("ok", run_prediction(path)))
         except SystemExit as exc:
             self.results.put(("error", str(exc) or "Проверка остановлена: входные данные не похожи на PE-файл."))
         except (FileNotFoundError, ValueError, RuntimeError, ImportError) as exc:

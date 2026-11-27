@@ -20,7 +20,7 @@ from typing import Any
 
 import numpy as np
 
-from pe_static_analyzer.prediction.model import load_model_payload
+from pe_static_analyzer.prediction.model import LightGbmDetector
 from pe_static_analyzer.settings import DEFAULT_MODEL
 from pe_static_analyzer.features.ember import FEATURE_DIM
 from pe_static_analyzer.gold.extraction import gold_vector
@@ -49,7 +49,15 @@ class ParallelGoldLightGbmSettings:
 def load_payload(path: Path) -> dict[str, Any]:
     import lightgbm as lgb
 
-    payload = load_model_payload(path)
+    if path.suffix == ".txt":
+        detector = LightGbmDetector(path)
+        return {"booster": detector.booster, "selected_indices": detector.selected_indices,
+                "postprocess": "sorel_signed_log"}
+
+    # Historical full-corpus experiments stored the booster and indices together.
+    import joblib
+
+    payload = joblib.load(path)
     if payload.get("model_type") != "lightgbm":
         raise RuntimeError(f"model payload is not LightGBM: {path}")
     if "model_string" not in payload:

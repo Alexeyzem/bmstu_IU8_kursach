@@ -5,7 +5,7 @@ import numpy as np
 from lightgbm import Booster
 
 from pe_static_analyzer.features.schema import build_feature_schema
-from pe_static_analyzer.prediction.model import ModelPayloadScorer, load_model_payload
+from pe_static_analyzer.prediction.model import LightGbmDetector
 from pe_static_analyzer.settings import DEFAULT_MODEL
 
 
@@ -23,5 +23,5 @@ class DefaultDetectorTest(unittest.TestCase):
             selected = sample["features"]
         raw = np.zeros(len(schema), dtype=np.float32)
         raw[indices] = np.sign(selected) * np.expm1(np.abs(selected))
-        scorer = ModelPayloadScorer(load_model_payload(DEFAULT_MODEL))
+        scorer = LightGbmDetector()
         self.assertAlmostEqual(scorer.score_vector(raw), 0.0002613412521455382, places=10)

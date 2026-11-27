@@ -9,7 +9,7 @@
 ```sh
 python3.14 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-detector.txt
 python -m pe_static_analyzer.prediction.demo
 ```
 
@@ -33,6 +33,8 @@ python -m pe_static_analyzer.prediction.demo
 В [settings.py](pe_static_analyzer/settings.py) константа `ACTIVE_EXPERIMENT` выбирает объём выборки, seed и каталоги моделей и отчёта. Для основного опыта оставьте `BASELINE` (100 000 файлов, seed 42). Имена и пути специальных задач находятся в классах `…Settings` соответствующих модулей. Для проверки одного файла задайте `INPUT_FILE` в [single_file.py](pe_static_analyzer/prediction/single_file.py) или выберите файл в GUI. Порог решения зафиксирован на 0,5.
 
 ## Повторить исследование
+
+Для обучения, пакетной оценки и воспроизведения сравнений установите полный набор зависимостей командой `python -m pip install -r requirements.txt`. Он включает зависимости детектора.
 
 1. Получить `meta.db` и LMDB с обработанными EMBER-признаками по инструкции [авторов SOREL-20M](https://github.com/sophos/SOREL-20M). Разместить базу в `datasets/sorel20m/meta.db`, а `data.mdb` — в `datasets/sorel20m/ember_features/`. Локальная копия SOREL занимает около 75 ГиБ. Для расчётов нужны дополнительное место под манифесты и несколько ГиБ оперативной памяти.
 2. Подготовить манифесты и список признаков. При наличии исходных файлов эксперимента в `outputs/matrices/` и `outputs/features/selected_features.json` можно перейти к обучению.
@@ -67,4 +69,4 @@ python -m pe_static_analyzer.evaluation.gold_shap
 
 Для проверки всей очищенной коллекции gold запустите `python -m pe_static_analyzer.gold.lightgbm_fast_inference`. Команда использует приложенный детектор и записывает прогнозы, метрики и ошибки обработки в `outputs/metrics/` (имена содержат `without_header_600`).
 
-GUI запускается через `python -m pe_static_analyzer.gui.desktop_app` и требует Tk. По умолчанию выбран приложенный LightGBM без заголовка. Для ручного переключения на SGD требуется локальный файл `outputs/models/baseline_sgd.pkl`.
+GUI запускается через `python -m pe_static_analyzer.gui.desktop_app` и требует Tk. Для проверки используется приложенный LightGBM на 600 деревьях без группы заголовка.

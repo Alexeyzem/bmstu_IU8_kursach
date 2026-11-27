@@ -1,26 +1,17 @@
-#!/usr/bin/env python3
-"""Run trained malware classifier inference on raw PE bytes.
-
-Input is a PE file, not a precomputed feature matrix. The script extracts the
-same EMBER-v2-style static features used for SOREL training, applies the stored
-selected feature indices, then scores either the SGD baseline payload or the
-separate LightGBM payload.
-"""
-
+"""Classify one PE file with the published LightGBM detector."""
 from __future__ import annotations
 
 import hashlib
 import json
 from pathlib import Path
 
-from pe_static_analyzer.prediction.model import ModelPayloadScorer, load_model_payload
+from pe_static_analyzer.prediction.model import LightGbmDetector
 from pe_static_analyzer.settings import DEFAULT_MODEL
 from pe_static_analyzer.core.pe_input import read_pe_bytes
 from pe_static_analyzer.features.ember import FEATURE_DIM, PEFeatureExtractor, is_probably_pe
 
 
 def predict_file(path: Path, model_path: Path = DEFAULT_MODEL, malwarebazaar_zip: bool = False, threshold: float = 0.5) -> dict[str, object]:
-    payload = load_model_payload(model_path)
     data = read_pe_bytes(path, malwarebazaar_zip)
     input_mode = "malwarebazaar_zip_in_memory" if malwarebazaar_zip else "raw_pe"
     if not is_probably_pe(data):
@@ -30,7 +21,7 @@ def predict_file(path: Path, model_path: Path = DEFAULT_MODEL, malwarebazaar_zip
     if vector.shape != (FEATURE_DIM,):
         raise RuntimeError(f"feature shape {vector.shape}; expected ({FEATURE_DIM},)")
 
-    scorer = ModelPayloadScorer(payload)
+    scorer = LightGbmDetector(model_path)
     probability = scorer.score_vector(vector)
     return {
         "path": str(path),
@@ -42,20 +33,19 @@ def predict_file(path: Path, model_path: Path = DEFAULT_MODEL, malwarebazaar_zip
         "threshold": threshold,
         "prediction": int(probability >= threshold),
         "prediction_label": "malware_or_dangerous" if probability >= threshold else "benign_or_safe",
-        "model_type": scorer.model_type,
+        "model_type": "lightgbm",
         "safety": "PE bytes are parsed statically only; input is not executed.",
     }
 
 
 INPUT_FILE = Path("sample.exe")
-MODEL_FILE = DEFAULT_MODEL
 READ_ENCRYPTED_ARCHIVE = False
 
 
 def main() -> int:
     if not INPUT_FILE.is_file():
         raise SystemExit(f"Укажите существующий PE-файл в INPUT_FILE (сейчас {INPUT_FILE}).")
-    result = predict_file(INPUT_FILE, MODEL_FILE, READ_ENCRYPTED_ARCHIVE, 0.5)
+    result = predict_file(INPUT_FILE, malwarebazaar_zip=READ_ENCRYPTED_ARCHIVE)
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0
 
